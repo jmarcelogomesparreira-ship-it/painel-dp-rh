@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel DP &amp; RH — Portfólio Marcelo Parreira</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#1F3864; --navy-light:#2E4E8C; --accent:#B5651D; --accent-light:#D98B4A;
+    --bg:#F4F5F7; --card:#FFFFFF; --text:#222; --muted:#6B7280; --border:#E3E5EA;
+    --green:#1B8A5A; --red:#C0392B; --yellow:#C68A1A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Calibri,Arial,sans-serif;background:var(--bg);color:var(--text);}
+  header{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;padding:22px 28px;}
+  header h1{margin:0;font-size:22px;font-weight:700;}
+  header p{margin:4px 0 0;font-size:13px;opacity:.85;}
+  .disclaimer{background:#FFF6E9;border:1px solid #F1D9A8;color:#8A5A0B;font-size:12.5px;padding:8px 28px;}
+  nav{display:flex;gap:4px;background:#fff;border-bottom:1px solid var(--border);padding:0 24px;overflow-x:auto;}
+  nav button{background:none;border:none;padding:14px 18px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button.active{color:var(--navy);border-bottom-color:var(--accent);}
+  main{padding:24px;max-width:1280px;margin:0 auto;}
+  .tab{display:none;} .tab.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px;}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;border-top:3px solid var(--accent);}
+  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+  .kpi .value{font-size:26px;font-weight:700;color:var(--navy);margin-top:4px;}
+  .kpi .sub{font-size:12px;margin-top:2px;}
+  .up{color:var(--red);} .down{color:var(--green);}
+  .grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr;}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px;}
+  .card h3{margin:0 0 12px;font-size:15px;color:var(--navy);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;}
+  tr:hover{background:#FAFAFA;}
+  .tag{padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+  .tag.green{background:#E5F5EE;color:var(--green);}
+  .tag.red{background:#FBEAE8;color:var(--red);}
+  .tag.yellow{background:#FDF3E1;color:var(--yellow);}
+  form.calc{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  form.calc label{font-size:12.5px;color:var(--muted);display:block;margin-bottom:4px;}
+  form.calc input,form.calc select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;}
+  form.calc .full{grid-column:1/-1;}
+  .btn{background:var(--navy);color:#fff;border:none;padding:11px 22px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;}
+  .btn:hover{background:var(--navy-light);}
+  .result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:14px;}
+  .result-row.total{font-weight:700;color:var(--navy);font-size:16px;border-bottom:none;border-top:2px solid var(--navy);margin-top:6px;padding-top:12px;}
+  .bar-wrap{background:#EEE;border-radius:6px;overflow:hidden;height:10px;width:100%;}
+  .bar-fill{height:100%;border-radius:6px;}
+  footer{text-align:center;padding:22px;font-size:12px;color:var(--muted);}
+  .credit{font-weight:600;color:var(--navy);}
+  .small-muted{font-size:12px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Painel de Gestão de Pessoas (DP &amp; RH)</h1>
+  <p>Indicadores de headcount, turnover e absenteísmo · Calculadora de rescisão · Ponto &amp; banco de horas · Férias e movimentação</p>
+</header>
+<div class="disclaimer">⚠️ Peça de portfólio: todos os dados abaixo são <strong>fictícios</strong>, gerados apenas para demonstrar a ferramenta. Os cálculos de rescisão são simplificados (regras gerais da CLT) e não substituem o sistema oficial de folha de pagamento.</div>
+
+<nav id="tabs">
+  <button data-tab="visao" class="active">Visão Geral</button>
+  <button data-tab="rescisao">Calculadora de Rescisão</button>
+  <button data-tab="ponto">Ponto &amp; Banco de Horas</button>
+  <button data-tab="ferias">Férias &amp; Movimentação</button>
+</nav>
+
+<main>
+
+  <!-- ===== VISÃO GERAL ===== -->
+  <section id="visao" class="tab active">
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Evolução do Headcount (12 meses)</h3>
+        <canvas id="chartHeadcount" height="110"></canvas>
+      </div>
+      <div class="card">
+        <h3>Headcount por Departamento</h3>
+        <canvas id="chartDept" height="180"></canvas>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Turnover Mensal (%)</h3>
+        <canvas id="chartTurnover" height="110"></canvas>
+      </div>
+      <div class="card">
+        <h3>Absenteísmo Mensal (%)</h3>
+        <canvas id="chartAbsent" height="110"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RESCISÃO ===== -->
+  <section id="rescisao" class="tab">
+    <div class="grid2">
+      <div class="card">
+        <h3>Dados da Rescisão</h3>
+        <form class="calc" id="formRescisao">
+          <div>
+            <label>Salário bruto mensal (R$)</label>
+            <input type="number" id="salario" value="2400" step="0.01">
+          </div>
+          <div>
+            <label>Tipo de desligamento</label>
+            <select id="tipo">
+              <option value="sem_justa_causa">Dispensa sem justa causa</option>
+              <option value="pedido_demissao">Pedido de demissão</option>
+              <option value="acordo">Acordo mútuo (Art. 484-A)</option>
+              <option value="justa_causa">Justa causa</option>
+            </select>
+          </div>
+          <div>
+            <label>Data de admissão</label>
+            <input type="date" id="dataAdmissao" value="2023-03-10">
+          </div>
+          <div>
+            <label>Data de desligamento</label>
+            <input type="date" id="dataDesligamento" value="2026-09-17">
+          </div>
+          <div>
+            <label>Aviso prévio</label>
+            <select id="aviso">
+              <option value="indenizado">Indenizado</option>
+              <option value="trabalhado">Trabalhado</option>
+              <option value="dispensado">Dispensado de cumprir (pago)</option>
+            </select>
+          </div>
+          <div>
+            <label>Dias de férias vencidas (não gozadas)</label>
+            <input type="number" id="feriasVencidas" value="0" min="0" max="30">
+          </div>
+          <div class="full">
+            <button type="button" class="btn" onclick="calcularRescisao()">Calcular</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Resumo do Cálculo</h3>
+        <div id="resultadoRescisao">
+          <p class="small-muted">Preencha os dados e clique em Calcular.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PONTO & BANCO DE HORAS ===== -->
+  <section id="ponto" class="tab">
+    <div class="kpi-grid" id="kpiPonto"></div>
+    <div class="card">
+      <h3>Banco de Horas por Colaborador — mês atual</h3>
+      <table>
+        <thead><tr><th>Colaborador</th><th>Depto.</th><th>Horas esperadas</th><th>Horas trabalhadas</th><th>Saldo banco de horas</th><th>Status</th></tr></thead>
+        <tbody id="tabelaPonto"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== FÉRIAS & MOVIMENTAÇÃO ===== -->
+  <section id="ferias" class="tab">
+    <div class="grid2">
+      <div class="card">
+        <h3>Próximas Férias (60 dias)</h3>
+        <table>
+          <thead><tr><th>Colaborador</th><th>Depto.</th><th>Início</th><th>Dias</th></tr></thead>
+          <tbody id="tabelaFerias"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Movimentação Recente</h3>
+        <table>
+          <thead><tr><th>Colaborador</th><th>Tipo</th><th>Data</th><th>Motivo</th></tr></thead>
+          <tbody id="tabelaMovimentacao"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Sistema desenvolvido por <span class="credit">Marcelo Parreira</span> — peça de portfólio pessoal (dados fictícios) · Assistente Administrativo | SAP MM | Power BI
+</footer>
+
+<script>
+/* ===================== GERAÇÃO DE DADOS FICTÍCIOS ===================== */
+function seededRandom(seed){ let s = seed; return function(){ s = (s*9301+49297)%233280; return s/233280; }; }
+const rnd = seededRandom(42);
+const nomes = ["Ana","Bruno","Carla","Daniel","Elaine","Fábio","Gabriela","Heitor","Isabela","João","Karina","Lucas","Mariana","Nelson","Otávio","Patrícia","Rafael","Sandra","Tiago","Vanessa","Wagner","Yasmin","César","Débora","Eduardo","Fernanda","Gustavo","Helena","Igor","Juliana"];
+const sobrenomes = ["Silva","Souza","Oliveira","Santos","Pereira","Costa","Rodrigues","Almeida","Nascimento","Lima","Araújo","Ribeiro","Carvalho","Gomes","Martins"];
+const departamentos = ["Produção","Manutenção","Administrativo","Logística/Frota","Agrícola","Qualidade"];
+const motivosSaida = ["Dispensa sem justa causa","Pedido de demissão","Fim de contrato","Acordo mútuo","Justa causa"];
+
+function pick(arr){ return arr[Math.floor(rnd()*arr.length)]; }
+function randInt(min,max){ return Math.floor(rnd()*(max-min+1))+min; }
+
+const hoje = new Date("2026-09-17");
+const funcionarios = [];
+for(let i=0;i<58;i++){
+  const nome = pick(nomes)+" "+pick(sobrenomes);
+  const depto = pick(departamentos);
+  const admMesesAtras = randInt(2,60);
+  const admissao = new Date(hoje); admissao.setMonth(admissao.getMonth()-admMesesAtras);
+  const ativo = rnd() > 0.09;
+  let desligamento = null, motivo = null;
+  if(!ativo){
+    const desligMesesAtras = randInt(0,5);
+    desligamento = new Date(hoje); desligamento.setMonth(desligamento.getMonth()-desligMesesAtras);
+    motivo = pick(motivosSaida);
+  }
+  funcionarios.push({
+    nome, depto, admissao, ativo, desligamento, motivo,
+    horasEsperadas: 220,
+    horasTrabalhadas: 220 + randInt(-28,26),
+    faltas: rnd() > 0.82 ? randInt(1,3) : 0,
+    proximasFerias: ativo && rnd() > 0.55 ? (function(){ const d=new Date(hoje); d.setDate(d.getDate()+randInt(3,60)); return d; })() : null,
+  });
+}
+const ativos = funcionarios.filter(f=>f.ativo);
+
+/* ===================== VISÃO GERAL ===================== */
+function fmtMes(d){ return d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}); }
+
+const meses12 = [];
+for(let i=11;i>=0;i--){ const d=new Date(hoje); d.setMonth(d.getMonth()-i); meses12.push(d); }
+
+const headcountSerie = meses12.map(mRef=>{
+  return funcionarios.filter(f=> f.admissao <= mRef && (!f.desligamento || f.desligamento > mRef)).length;
+});
+const desligamentosSerie = meses12.map(mRef=>{
+  return funcionarios.filter(f=> f.desligamento && f.desligamento.getMonth()===mRef.getMonth() && f.desligamento.getFullYear()===mRef.getFullYear()).length;
+});
+const admissoesSerie = meses12.map(mRef=>{
+  return funcionarios.filter(f=> f.admissao.getMonth()===mRef.getMonth() && f.admissao.getFullYear()===mRef.getFullYear()).length;
+});
+const turnoverSerie = meses12.map((m,i)=> headcountSerie[i] ? ((desligamentosSerie[i]/headcountSerie[i])*100) : 0);
+const absenteismoSerie = meses12.map(()=> +(randInt(15,45)/10).toFixed(1));
+
+const headcountAtual = ativos.length;
+const admissoesMes = admissoesSerie[11];
+const desligamentosMes = desligamentosSerie[11];
+const turnoverMedio12m = (turnoverSerie.reduce((a,b)=>a+b,0)/12).toFixed(1);
+const absenteismoAtual = absenteismoSerie[11];
+
+document.getElementById('kpiGrid').innerHTML = `
+  <div class="kpi"><div class="label">Headcount Atual</div><div class="value">${headcountAtual}</div><div class="sub small-muted">colaboradores ativos</div></div>
+  <div class="kpi"><div class="label">Admissões (mês)</div><div class="value down">${admissoesMes}</div><div class="sub small-muted">novas entradas</div></div>
+  <div class="kpi"><div class="label">Desligamentos (mês)</div><div class="value up">${desligamentosMes}</div><div class="sub small-muted">saídas no mês</div></div>
+  <div class="kpi"><div class="label">Turnover médio (12m)</div><div class="value">${turnoverMedio12m}%</div><div class="sub small-muted">rotatividade mensal</div></div>
+  <div class="kpi"><div class="label">Absenteísmo (mês)</div><div class="value">${absenteismoAtual}%</div><div class="sub small-muted">faltas / dias úteis</div></div>
+`;
+
+new Chart(document.getElementById('chartHeadcount'), {
+  type:'line',
+  data:{ labels: meses12.map(fmtMes), datasets:[{ label:'Headcount', data: headcountSerie, borderColor:'#1F3864', backgroundColor:'rgba(31,56,100,0.08)', fill:true, tension:.3 }]},
+  options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}} }
+});
+
+const deptCounts = departamentos.map(d=> ativos.filter(f=>f.depto===d).length);
+new Chart(document.getElementById('chartDept'), {
+  type:'doughnut',
+  data:{ labels: departamentos, datasets:[{ data: deptCounts, backgroundColor:['#1F3864','#B5651D','#2E4E8C','#D98B4A','#6B7280','#8A5A0B'] }]},
+  options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:12,font:{size:11}}}} }
+});
+
+new Chart(document.getElementById('chartTurnover'), {
+  type:'bar',
+  data:{ labels: meses12.map(fmtMes), datasets:[{ label:'Turnover %', data: turnoverSerie.map(v=>+v.toFixed(1)), backgroundColor:'#B5651D' }]},
+  options:{ plugins:{legend:{display:false}} }
+});
+
+new Chart(document.getElementById('chartAbsent'), {
+  type:'line',
+  data:{ labels: meses12.map(fmtMes), datasets:[{ label:'Absenteísmo %', data: absenteismoSerie, borderColor:'#C0392B', backgroundColor:'rgba(192,57,43,0.08)', fill:true, tension:.3 }]},
+  options:{ plugins:{legend:{display:false}} }
+});
+
+/* ===================== PONTO & BANCO DE HORAS ===================== */
+const saldos = ativos.map(f=> f.horasTrabalhadas - f.horasEsperadas);
+const positivos = saldos.filter(s=>s>5).length;
+const negativos = saldos.filter(s=>s<-5).length;
+const emDia = ativos.length - positivos - negativos;
+
+document.getElementById('kpiPonto').innerHTML = `
+  <div class="kpi"><div class="label">Colaboradores monitorados</div><div class="value">${ativos.length}</div></div>
+  <div class="kpi"><div class="label">Banco de horas positivo</div><div class="value down">${positivos}</div></div>
+  <div class="kpi"><div class="label">Banco de horas negativo</div><div class="value up">${negativos}</div></div>
+  <div class="kpi"><div class="label">Dentro do esperado</div><div class="value">${emDia}</div></div>
+`;
+
+const tabelaPonto = document.getElementById('tabelaPonto');
+ativos.slice(0,20).forEach(f=>{
+  const saldo = f.horasTrabalhadas - f.horasEsperadas;
+  let tag = '<span class="tag green">Em dia</span>';
+  if(saldo>5) tag = '<span class="tag yellow">Saldo positivo</span>';
+  if(saldo<-5) tag = '<span class="tag red">Saldo negativo</span>';
+  tabelaPonto.innerHTML += `<tr>
+    <td>${f.nome}</td><td>${f.depto}</td><td>${f.horasEsperadas}h</td><td>${f.horasTrabalhadas}h</td>
+    <td>${saldo>0?'+':''}${saldo}h</td><td>${tag}</td>
+  </tr>`;
+});
+
+/* ===================== FÉRIAS & MOVIMENTAÇÃO ===================== */
+const tabelaFerias = document.getElementById('tabelaFerias');
+ativos.filter(f=>f.proximasFerias).sort((a,b)=>a.proximasFerias-b.proximasFerias).slice(0,12).forEach(f=>{
+  tabelaFerias.innerHTML += `<tr><td>${f.nome}</td><td>${f.depto}</td><td>${f.proximasFerias.toLocaleDateString('pt-BR')}</td><td>${randInt(10,30)} dias</td></tr>`;
+});
+
+const tabelaMov = document.getElementById('tabelaMovimentacao');
+const movs = funcionarios
+  .filter(f=> f.desligamento || (hoje - f.admissao)/(1000*60*60*24) < 60)
+  .map(f=> f.desligamento
+    ? {nome:f.nome, tipo:'Desligamento', data:f.desligamento, motivo:f.motivo}
+    : {nome:f.nome, tipo:'Admissão', data:f.admissao, motivo:'Contratação'})
+  .sort((a,b)=> b.data - a.data).slice(0,14);
+movs.forEach(m=>{
+  const tag = m.tipo==='Admissão' ? '<span class="tag green">Admissão</span>' : '<span class="tag red">Desligamento</span>';
+  tabelaMov.innerHTML += `<tr><td>${m.nome}</td><td>${tag}</td><td>${m.data.toLocaleDateString('pt-BR')}</td><td>${m.motivo}</td></tr>`;
+});
+
+/* ===================== CALCULADORA DE RESCISÃO ===================== */
+function mesesEntre(d1,d2){
+  return (d2.getFullYear()-d1.getFullYear())*12 + (d2.getMonth()-d1.getMonth()) + (d2.getDate()>=d1.getDate()?0:-1);
+}
+function anosCompletos(d1,d2){
+  let anos = d2.getFullYear()-d1.getFullYear();
+  const aniversario = new Date(d1); aniversario.setFullYear(d1.getFullYear()+anos);
+  if(aniversario > d2) anos--;
+  return anos;
+}
+function brl(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+function calcularRescisao(){
+  const salario = parseFloat(document.getElementById('salario').value)||0;
+  const tipo = document.getElementById('tipo').value;
+  const dataAdmissao = new Date(document.getElementById('dataAdmissao').value);
+  const dataDesligamento = new Date(document.getElementById('dataDesligamento').value);
+  const aviso = document.getElementById('aviso').value;
+  const feriasVencidasDias = parseInt(document.getElementById('feriasVencidas').value)||0;
+
+  if(!document.getElementById('dataAdmissao').value || !document.getElementById('dataDesligamento').value || dataDesligamento<=dataAdmissao){
+    document.getElementById('resultadoRescisao').innerHTML = '<p style="color:var(--red)">Verifique as datas de admissão e desligamento.</p>';
+    return;
+  }
+
+  const diaSaida = dataDesligamento.getDate();
+  const saldoSalario = (salario/30)*diaSaida;
+
+  const totalMeses = mesesEntre(dataAdmissao, dataDesligamento);
+  const anos = anosCompletos(dataAdmissao, dataDesligamento);
+
+  // 13º proporcional (meses do ano corrente com 15+ dias)
+  const mesesAno = dataDesligamento.getMonth()+1;
+  const decimoTerceiro = (salario/12)*mesesAno;
+
+  // Férias proporcionais do período aquisitivo em curso (meses desde o último aniversário de admissão)
+  let ultimoAniversario = new Date(dataAdmissao);
+  ultimoAniversario.setFullYear(dataAdmissao.getFullYear() + anos);
+  const mesesFeriasProp = Math.max(0, mesesEntre(ultimoAniversario, dataDesligamento));
+  const feriasProporcionais = (salario/12)*mesesFeriasProp;
+  const feriasProporcionaisTerco = feriasProporcionais/3;
+
+  const feriasVencidasValor = (salario/30)*feriasVencidasDias;
+  const feriasVencidasTerco = feriasVencidasValor/3;
+
+  // Aviso prévio: 30 dias + 3 dias por ano completo, máx 90
+  const diasAviso = Math.min(30 + anos*3, 90);
+  let avisoPrevioValor = 0;
+  if(tipo==='sem_justa_causa' || tipo==='acordo'){
+    if(aviso==='indenizado' || aviso==='dispensado'){
+      avisoPrevioValor = (salario/30)*diasAviso;
+    }
+  }
+
+  // FGTS: estimativa 8% do salário por mês trabalhado
+  const fgtsAcumulado = salario*0.08*totalMeses;
+  let multaFgts = 0;
+  if(tipo==='sem_justa_causa') multaFgts = fgtsAcumulado*0.40;
+  if(tipo==='acordo') multaFgts = fgtsAcumulado*0.20;
+
+  let verbas = [];
+  verbas.push(['Saldo de salário', saldoSalario]);
+  if(tipo!=='justa_causa') verbas.push(['13º salário proporcional', decimoTerceiro]);
+  verbas.push(['Férias proporcionais + 1/3', feriasProporcionais+feriasProporcionaisTerco]);
+  if(feriasVencidasDias>0) verbas.push(['Férias vencidas + 1/3', feriasVencidasValor+feriasVencidasTerco]);
+  if(avisoPrevioValor>0) verbas.push([`Aviso prévio indenizado (${diasAviso} dias)`, avisoPrevioValor]);
+  if(multaFgts>0) verbas.push([`Multa FGTS (${tipo==='acordo'?'20%':'40%'})`, multaFgts]);
+
+  const total = verbas.reduce((s,v)=>s+v[1],0);
+
+  const tipoLabel = {sem_justa_causa:'Dispensa sem justa causa', pedido_demissao:'Pedido de demissão', acordo:'Acordo mútuo (Art. 484-A)', justa_causa:'Justa causa'}[tipo];
+
+  let html = `<p class="small-muted">Tipo: <strong>${tipoLabel}</strong> · Tempo de casa: <strong>${anos} ano(s)</strong> (${totalMeses} meses)</p>`;
+  verbas.forEach(v=>{
+    html += `<div class="result-row"><span>${v[0]}</span><span>${brl(v[1])}</span></div>`;
+  });
+  html += `<div class="result-row total"><span>Total estimado a receber</span><span>${brl(total)}</span></div>`;
+  html += `<p class="small-muted" style="margin-top:10px">*Cálculo simplificado (regras gerais CLT), sem considerar descontos de INSS/IRRF, médias variáveis ou convenção coletiva específica.</p>`;
+
+  document.getElementById('resultadoRescisao').innerHTML = html;
+}
+
+/* ===================== NAVEGAÇÃO DE ABAS ===================== */
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
